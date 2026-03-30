@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Secret Generator</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-top">
+      <div>
+        <div class="logo-chip">
+          <span class="logo-dot"></span>
+          CSPRNG · CLIENT-ONLY
+        </div>
+        <h1>Token <em>Secret</em><br>Generator</h1>
+        <p class="sub">// crypto.getRandomValues · zero server contact · 100% offline</p>
+      </div>
+      <div class="badges">
+        <span class="badge-pill">v2.0.0</span>
+        <span class="badge-pill">no-network</span>
+        <span class="badge-pill">client-only</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Controls ── -->
+  <div class="controls">
+    <div class="ctrl">
+      <label for="fmt">FORMAT</label>
+      <select id="fmt">
+        <option value="hex">Hex</option>
+        <option value="base64">Base64</option>
+        <option value="base64url">Base64URL</option>
+        <option value="uuid">UUID v4</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label for="len">PANJANG</label>
+      <select id="len">
+        <option value="32">32 char</option>
+        <option value="64" selected>64 char</option>
+        <option value="128">128 char</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label for="batchCount">BATCH</label>
+      <select id="batchCount">
+        <option value="5">5×</option>
+        <option value="10" selected>10×</option>
+        <option value="20">20×</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ── Main Token Card ── -->
+  <div class="main-card" id="mainCard">
+    <div class="card-head">
+      <div class="card-title">
+        TOKEN_SECRET
+        <span class="ent-badge" id="entBadge">256 bit</span>
+      </div>
+    </div>
+    <div class="token-box" id="mainToken" title="Klik untuk select semua">—</div>
+    <div class="strength-bar">
+      <div class="strength-seg" id="s1"></div>
+      <div class="strength-seg" id="s2"></div>
+      <div class="strength-seg" id="s3"></div>
+      <div class="strength-seg" id="s4"></div>
+    </div>
+    <div class="card-foot">
+      <div class="stats">
+        <span id="statLen">— chars</span>
+        <span id="statTime">—</span>
+        <span style="color:var(--cyan)">CSPRNG</span>
+      </div>
+      <button class="btn-sm" id="copyMainBtn">copy</button>
+    </div>
+  </div>
+
+  <!-- ── Actions ── -->
+  <div class="actions">
+    <button class="btn btn-primary" id="btnGen">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+      </svg>
+      Generate Baru
+    </button>
+    <button class="btn btn-solid" id="btnCopyAll">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Copy Semua
+    </button>
+    <button class="btn btn-solid" id="btnBatch">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Batch Generate
+    </button>
+    <button class="btn btn-ghost" id="btnExport">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export .env
+    </button>
+  </div>
+
+  <!-- ── Derived Section ── -->
+  <div class="section-lbl">Turunan Token</div>
+  <div class="derived-grid">
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-cyan">JWT</span> JWT Secret (Base64URL)</div>
+        <button class="btn-sm" data-copy="dJwt">copy</button>
+      </div>
+      <div class="d-val" id="dJwt">—</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-green">HMAC</span> HMAC-SHA256 Key</div>
+        <button class="btn-sm" data-copy="dHmac">copy</button>
+      </div>
+      <div class="d-val" id="dHmac">—</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-amber">AES</span> AES-256 Key (32 byte)</div>
+        <button class="btn-sm" data-copy="dAes">copy</button>
+      </div>
+      <div class="d-val" id="dAes">—</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-purple">IV</span> AES Init Vector (16 byte)</div>
+        <button class="btn-sm" data-copy="dIv">copy</button>
+      </div>
+      <div class="d-val" id="dIv">—</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-pink">API</span> API Key (sk_live_ + secret)</div>
+        <button class="btn-sm" data-copy="dApi">copy</button>
+      </div>
+      <div class="d-val" id="dApi">—</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-head">
+        <div class="d-lbl"><span class="tag t-cyan">SHA256</span> SHA-256 Hash</div>
+        <button class="btn-sm" data-copy="dSha">copy</button>
+      </div>
+      <div class="d-val" id="dSha">menghitung…</div>
+    </div>
+
+  </div>
+
+  <!-- ── ENV Card ── -->
+  <div class="env-card">
+    <div class="d-head">
+      <div class="d-lbl"><span class="tag t-green">ENV</span> Siap pakai di .env</div>
+      <button class="btn-sm" data-copy="dEnv">copy</button>
+    </div>
+    <div class="env-val" id="dEnv">—</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Batch Area ── -->
+  <div class="section-lbl" id="batchLbl" style="display:none">Batch Tokens</div>
+  <div class="batch-list" id="batchArea"></div>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <p>// Semua token di-generate di browser. Zero data dikirim ke server.</p>
+    <span class="shield">✓ 100% offline · client-only</span>
+  </footer>
+
+  <!-- ── Copyright Footer ── -->
+  <div class="copyright-footer">
+    <div class="copyright-inner">
+      <span class="footer-crown">👑</span>
+      <span class="footer-text" id="copyright-text"></span>
+      <span class="footer-crown">👑</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast notification -->
+<div id="toast">✓ Tersalin!</div>
+
+<script src="app.js"></script>
+</body>
+</html>
