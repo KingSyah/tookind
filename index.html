@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Security: prevent clickjacking & sniffing -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<!-- CSP: only allow own assets + Google Fonts; block all inline scripts except ours -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; worker-src blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self';">
+<title>Token Secret Generator</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo-area">
+      <div class="logo-tag">
+        <span class="logo-dot"></span>
+        CRYPTOGRAPHIC TOOL
+      </div>
+      <h1>Token <span>Secret</span><br>Generator</h1>
+      <p>// 64-char hex &amp; turunannya • CSPRNG</p>
+    </div>
+    <div class="header-meta">
+      <span class="meta-pill">v1.0.0</span>
+      <span class="meta-pill">client-only</span>
+      <span class="meta-pill">no-network</span>
+    </div>
+  </header>
+
+  <!-- Options -->
+  <div class="options-bar">
+    <div class="opt-group">
+      <label>FORMAT</label>
+      <select id="fmt" onchange="generate()">
+        <option value="hex">Hex</option>
+        <option value="base64">Base64</option>
+        <option value="base64url">Base64URL</option>
+        <option value="uuid">UUID v4</option>
+      </select>
+    </div>
+    <div class="opt-group">
+      <label>PANJANG</label>
+      <select id="len" onchange="generate()">
+        <option value="32">32 chars</option>
+        <option value="64" selected>64 chars</option>
+        <option value="128">128 chars</option>
+      </select>
+    </div>
+    <div class="opt-group">
+      <label>BATCH</label>
+      <select id="batch-count">
+        <option value="5">5x</option>
+        <option value="10">10x</option>
+        <option value="20">20x</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Token -->
+  <div class="main-token-card" id="main-card">
+    <div class="token-header">
+      <div class="token-label-row">
+        <span class="token-label">TOKEN_SECRET</span>
+        <span class="entropy-badge" id="entropy-badge">256 bit</span>
+      </div>
+    </div>
+    <div class="token-value" id="main-token" title="Klik untuk select semua">—</div>
+    <div class="token-footer">
+      <div class="token-stats">
+        <span class="stat-item">
+          <span class="stat-dot"></span>
+          <span id="stat-len">— chars</span>
+        </span>
+        <span class="stat-item">
+          <span id="stat-algo">CSPRNG / crypto.getRandomValues</span>
+        </span>
+        <span class="stat-item">
+          <span id="stat-time">—</span>
+        </span>
+      </div>
+      <button type="button" class="copy-sm" id="copy-main" onclick="copyEl('main-token','copy-main')">copy</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button type="button" class="btn btn-primary" onclick="generate()">
+      <span class="btn-icon">⟳</span> Generate Baru
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="copyAll()">
+      <span class="btn-icon">⎘</span> Copy Semua
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="generateBatch()">
+      <span class="btn-icon">≡</span> Batch Generate
+    </button>
+    <button type="button" class="btn btn-ghost" onclick="downloadEnv()">
+      <span class="btn-icon">↓</span> Export .env
+    </button>
+  </div>
+
+  <!-- Derived Section -->
+  <div class="section-label">Turunan Token</div>
+
+  <div class="derived-grid">
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-teal">JWT</span> JWT Secret (Base64URL)</div>
+        <button type="button" class="copy-sm" id="copy-jwt" onclick="copyEl('d-jwt','copy-jwt')">copy</button>
+      </div>
+      <div class="d-value" id="d-jwt">—</div>
+    </div>
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-blue">HMAC</span> HMAC-SHA256 Key</div>
+        <button type="button" class="copy-sm" id="copy-hmac" onclick="copyEl('d-hmac','copy-hmac')">copy</button>
+      </div>
+      <div class="d-value" id="d-hmac">—</div>
+    </div>
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-amber">AES</span> AES-256 Key (32 byte)</div>
+        <button type="button" class="copy-sm" id="copy-aes" onclick="copyEl('d-aes','copy-aes')">copy</button>
+      </div>
+      <div class="d-value" id="d-aes">—</div>
+    </div>
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-purple">IV</span> AES Init Vector (16 byte)</div>
+        <button type="button" class="copy-sm" id="copy-iv" onclick="copyEl('d-iv','copy-iv')">copy</button>
+      </div>
+      <div class="d-value" id="d-iv">—</div>
+    </div>
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-coral">API</span> API Key (prefix + secret)</div>
+        <button type="button" class="copy-sm" id="copy-api" onclick="copyEl('d-api','copy-api')">copy</button>
+      </div>
+      <div class="d-value" id="d-api">—</div>
+    </div>
+    <div class="derived-card">
+      <div class="d-header">
+        <div class="d-label"><span class="badge b-accent">SHA256</span> SHA-256 Hash (token)</div>
+        <button type="button" class="copy-sm" id="copy-sha" onclick="copyEl('d-sha','copy-sha')">copy</button>
+      </div>
+      <div class="d-value" id="d-sha">menghitung...</div>
+    </div>
+  </div>
+
+  <!-- ENV Card -->
+  <div class="env-card">
+    <div class="d-header">
+      <div class="d-label"><span class="badge b-accent">ENV</span> Siap pakai di .env</div>
+      <button type="button" class="copy-sm" id="copy-env" onclick="copyEl('d-env','copy-env')">copy</button>
+    </div>
+    <div class="env-value" id="d-env">—</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Batch -->
+  <div class="section-label" id="batch-label" style="display:none">Batch Tokens</div>
+  <div class="batch-list" id="batch-area"></div>
+
+  <!-- Footer -->
+  <footer>
+    <p>// Semua token di-generate di browser. Tidak ada data dikirim ke server.</p>
+    <span class="shield">✓ 100% offline</span>
+  </footer>
+
+  <!-- COPYRIGHT FOOTER -->
+  <div class="copyright-footer">
+    <div class="copyright-inner">
+      <span class="footer-crown">👑</span>
+      <span class="footer-text" id="copyright-text"></span>
+      <span class="footer-crown">👑</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast">✓ Tersalin ke clipboard</div>
+
+<script src="app.js"></script>
+</body>
+</html>
